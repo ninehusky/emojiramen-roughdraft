@@ -1,12 +1,11 @@
 const express = require('express');
-
 const morgan = require('morgan');
-
 const helmet = require('helmet');
+const dotenv = require('dotenv').config();
+
+const middlewares = require('./middlewares/middlewares');
 
 const app = express();
-
-const dotenv = require('dotenv').config();
 
 app.use(helmet());
 app.use(morgan('dev'));
@@ -17,7 +16,8 @@ app.get('/', (req, res) => {
   });
 });
 
-// insert middleware error handlers here
+app.use(middlewares.notFound);
+app.use(middlewares.errorHandler);
 
 const port = process.env.PORT || 1337;
 app.listen(port, () => {
