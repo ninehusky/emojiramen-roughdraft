@@ -1,6 +1,12 @@
 const express = require('express');
 const Joi = require('@hapi/joi');
+const bcrypt = require('bcryptjs');
 const router = express.Router();
+
+const db = require('../db/connection');
+const users = db.get('users');
+
+users.createIndex('username', { unique: true });
 
 const schema = Joi.object({
   username: Joi.string().regex(/^[A-Za-z0-9_]+$/).min(6).max(20).required(),
@@ -21,8 +27,27 @@ router.post('/signup', (req, res, next) => {
     }
     next(validation.error);
   } else {
-    res.json({
-      message: validation
+    // check uniqueness of username
+    users.findOne({
+      username: req.body.username
+    }).then(user => {
+      if (user) {
+        const error = new Error('That username is already taken!');
+        res.status(422);
+        next(error);
+      } else {
+        bcrypt.hash(req.body.password, 12).then(hashedPassword => {
+          const newUser = {
+            username: req.body.username,
+            password: hashedPassword
+          };
+
+          users.insert(newUser).then(insertedUser => {
+            delete insertedUser.password;
+            res.json(insertedUser);
+          });
+        });
+      }
     });
   }
 });
