@@ -10,7 +10,7 @@ users.createIndex('username', { unique: true });
 
 const schema = Joi.object({
   username: Joi.string().regex(/^[A-Za-z0-9_]+$/).min(6).max(20).required(),
-  password: Joi.string().trim().min(6).max(20).required()
+  password: Joi.string().trim().min(6).required()
 });
 
 router.get('/', (req, res) => {
