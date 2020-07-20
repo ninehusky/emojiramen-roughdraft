@@ -54,6 +54,8 @@
 <script>
 import Joi from '@hapi/joi';
 
+const SIGNUP_URL = 'http://localhost:5000/auth/signup';
+
 const schema = Joi.object({
   username: Joi.string()
     .regex(/^[A-Za-z0-9_]+$/)
@@ -84,7 +86,30 @@ export default {
   methods: {
     signup() {
       if (this.validUser()) {
-        console.log('success');
+        const body = {
+          username: this.user.username,
+          password: this.user.password,
+        };
+
+        fetch(SIGNUP_URL, {
+          method: 'POST',
+          body: JSON.stringify(body),
+          headers: {
+            'content-type': 'application/json',
+          },
+        }).then((response) => {
+          if (response.ok) {
+            return response.json();
+          }
+          return response.json().then((error) => {
+            throw new Error(error.message);
+          });
+        }).then((result) => {
+          localStorage.token = result.token;
+          this.$router.push('/dashboard');
+        }).catch((error) => {
+          this.errorMessage = error.message;
+        });
       }
     },
     validUser() {
